@@ -1,0 +1,348 @@
+> 
+> /* (1) Find the company name, contact name, and contact title of the customers with a given company name. */;
+> 
+> db.orders.createIndex({"CUSTOMER.company name":1},{"unique":false});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+> db.orders.getIndexes();
+[
+	{
+		"v" : 2,
+		"key" : {
+			"_id" : 1
+		},
+		"name" : "_id_",
+		"ns" : "test.orders"
+	},
+	{
+		"v" : 2,
+		"key" : {
+			"CUSTOMER.company name" : 1
+		},
+		"name" : "CUSTOMER.company name_1",
+		"ns" : "test.orders"
+	}
+]
+> db.orders.find({"CUSTOMER.company name":"Alfreds Futterkiste"},{"CUSTOMER.company name":1,"CUSTOMER.contact name":1,"CUSTOMER.contact title":1}).explain();
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "test.orders",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"CUSTOMER.company name" : {
+				"$eq" : "Alfreds Futterkiste"
+			}
+		},
+		"queryHash" : "0B927E56",
+		"planCacheKey" : "7FD93F1C",
+		"winningPlan" : {
+			"stage" : "PROJECTION_DEFAULT",
+			"transformBy" : {
+				"CUSTOMER.company name" : 1,
+				"CUSTOMER.contact name" : 1,
+				"CUSTOMER.contact title" : 1
+			},
+			"inputStage" : {
+				"stage" : "FETCH",
+				"inputStage" : {
+					"stage" : "IXSCAN",
+					"keyPattern" : {
+						"CUSTOMER.company name" : 1
+					},
+					"indexName" : "CUSTOMER.company name_1",
+					"isMultiKey" : false,
+					"multiKeyPaths" : {
+						"CUSTOMER.company name" : [ ]
+					},
+					"isUnique" : false,
+					"isSparse" : false,
+					"isPartial" : false,
+					"indexVersion" : 2,
+					"direction" : "forward",
+					"indexBounds" : {
+						"CUSTOMER.company name" : [
+							"[\"Alfreds Futterkiste\", \"Alfreds Futterkiste\"]"
+						]
+					}
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "csci235-VirtualBox",
+		"port" : 4000,
+		"version" : "4.2.7",
+		"gitVersion" : "51d9fe12b5d19720e72dcd7db0f2f17dd9a19212"
+	},
+	"ok" : 1
+}
+> db.orders.dropIndex("CUSTOMER.company name_1");
+{ "nIndexesWas" : 2, "ok" : 1 }
+> 
+> /* (2) Find the company name of the customers who submitted an order with a give date. */;
+> 
+> db.orders.createIndex({"CUSTOMER.submits.ORDER.order date":1},{"unique":false});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+> db.orders.getIndexes();
+[
+	{
+		"v" : 2,
+		"key" : {
+			"_id" : 1
+		},
+		"name" : "_id_",
+		"ns" : "test.orders"
+	},
+	{
+		"v" : 2,
+		"key" : {
+			"CUSTOMER.submits.ORDER.order date" : 1
+		},
+		"name" : "CUSTOMER.submits.ORDER.order date_1",
+		"ns" : "test.orders"
+	}
+]
+> db.orders.find({"CUSTOMER.submits.ORDER.order date":ISODate("1996-12-16T00:00:00Z")},{"CUSTOMER.company name":1}).explain();
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "test.orders",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"CUSTOMER.submits.ORDER.order date" : {
+				"$eq" : ISODate("1996-12-16T00:00:00Z")
+			}
+		},
+		"queryHash" : "025B19BE",
+		"planCacheKey" : "8205921E",
+		"winningPlan" : {
+			"stage" : "PROJECTION_DEFAULT",
+			"transformBy" : {
+				"CUSTOMER.company name" : 1
+			},
+			"inputStage" : {
+				"stage" : "FETCH",
+				"inputStage" : {
+					"stage" : "IXSCAN",
+					"keyPattern" : {
+						"CUSTOMER.submits.ORDER.order date" : 1
+					},
+					"indexName" : "CUSTOMER.submits.ORDER.order date_1",
+					"isMultiKey" : true,
+					"multiKeyPaths" : {
+						"CUSTOMER.submits.ORDER.order date" : [
+							"CUSTOMER.submits"
+						]
+					},
+					"isUnique" : false,
+					"isSparse" : false,
+					"isPartial" : false,
+					"indexVersion" : 2,
+					"direction" : "forward",
+					"indexBounds" : {
+						"CUSTOMER.submits.ORDER.order date" : [
+							"[new Date(850694400000), new Date(850694400000)]"
+						]
+					}
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "csci235-VirtualBox",
+		"port" : 4000,
+		"version" : "4.2.7",
+		"gitVersion" : "51d9fe12b5d19720e72dcd7db0f2f17dd9a19212"
+	},
+	"ok" : 1
+}
+> db.orders.dropIndex("CUSTOMER.submits.ORDER.order date_1");
+{ "nIndexesWas" : 2, "ok" : 1 }
+> 
+> 
+> /* (3) Find the names of products ordered by the customers living in a given city. */;
+> 
+> db.orders.createIndex({"CUSTOMER.city":1},{"unique":false});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+> db.orders.getIndexes();
+[
+	{
+		"v" : 2,
+		"key" : {
+			"_id" : 1
+		},
+		"name" : "_id_",
+		"ns" : "test.orders"
+	},
+	{
+		"v" : 2,
+		"key" : {
+			"CUSTOMER.city" : 1
+		},
+		"name" : "CUSTOMER.city_1",
+		"ns" : "test.orders"
+	}
+]
+> db.orders.find({"CUSTOMER.city":"México D.F."},{"CUSTOMER.submits.ORDER.product name":1}).explain();
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "test.orders",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"CUSTOMER.city" : {
+				"$eq" : "México D.F."
+			}
+		},
+		"queryHash" : "67C9C98E",
+		"planCacheKey" : "0A2E34DD",
+		"winningPlan" : {
+			"stage" : "PROJECTION_DEFAULT",
+			"transformBy" : {
+				"CUSTOMER.submits.ORDER.product name" : 1
+			},
+			"inputStage" : {
+				"stage" : "FETCH",
+				"inputStage" : {
+					"stage" : "IXSCAN",
+					"keyPattern" : {
+						"CUSTOMER.city" : 1
+					},
+					"indexName" : "CUSTOMER.city_1",
+					"isMultiKey" : false,
+					"multiKeyPaths" : {
+						"CUSTOMER.city" : [ ]
+					},
+					"isUnique" : false,
+					"isSparse" : false,
+					"isPartial" : false,
+					"indexVersion" : 2,
+					"direction" : "forward",
+					"indexBounds" : {
+						"CUSTOMER.city" : [
+							"[\"México D.F.\", \"México D.F.\"]"
+						]
+					}
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "csci235-VirtualBox",
+		"port" : 4000,
+		"version" : "4.2.7",
+		"gitVersion" : "51d9fe12b5d19720e72dcd7db0f2f17dd9a19212"
+	},
+	"ok" : 1
+}
+> db.orders.dropIndex("CUSTOMER.city_1");
+{ "nIndexesWas" : 2, "ok" : 1 }
+> 
+> /* (4) Find the names of countries the customers live in. */;
+> 
+> db.orders.createIndex({"CUSTOMER.country":1},{"unique":false});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+> db.orders.getIndexes();
+[
+	{
+		"v" : 2,
+		"key" : {
+			"_id" : 1
+		},
+		"name" : "id",
+		"ns" : "test.orders"
+	},
+	{
+		"v" : 2,
+		"key" : {
+			"CUSTOMER.country" : 1
+		},
+		"name" : "CUSTOMER.country_1",
+		"ns" : "test.orders"
+	}
+]
+> db.orders.find({"CUSTOMER.country":{$exists:true}},{"CUSTOMER.country":1,"_id":0}).explain();
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "test.orders",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"CUSTOMER.country" : {
+				"$exists" : true
+			}
+		},
+		"queryHash" : "E89E7785",
+		"planCacheKey" : "B17DD4C8",
+		"winningPlan" : {
+			"stage" : "PROJECTION_DEFAULT",
+			"transformBy" : {
+				"CUSTOMER.country" : 1,
+				"_id" : 0
+			},
+			"inputStage" : {
+				"stage" : "FETCH",
+				"filter" : {
+					"CUSTOMER.country" : {
+						"$exists" : true
+					}
+				},
+				"inputStage" : {
+					"stage" : "IXSCAN",
+					"keyPattern" : {
+						"CUSTOMER.country" : 1
+					},
+					"indexName" : "CUSTOMER.country_1",
+					"isMultiKey" : false,
+					"multiKeyPaths" : {
+						"CUSTOMER.country" : [ ]
+					},
+					"isUnique" : false,
+					"isSparse" : false,
+					"isPartial" : false,
+					"indexVersion" : 2,
+					"direction" : "forward",
+					"indexBounds" : {
+						"CUSTOMER.country" : [
+							"[MinKey, MaxKey]"
+						]
+					}
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "csci235-VirtualBox",
+		"port" : 4000,
+		"version" : "4.2.7",
+		"gitVersion" : "51d9fe12b5d19720e72dcd7db0f2f17dd9a19212"
+	},
+	"ok" : 1
+}
+> db.orders.dropIndex("CUSTOMER.country_1");
+{ "nIndexesWas" : 2, "ok" : 1 }
+>

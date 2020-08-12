@@ -1,0 +1,85 @@
+> /* (1) Save all information about the names of products suplied by a supplier Gai paturage into a collection products1. Display in a pretty format without document identifiers all documents in a collection products1. */;
+> 
+> db.orders.aggregate([{$match:{"SUPPLIER.company name":"Gai paturage"}},{$project:{"SUPPLIER.supplies.PRODUCT.product name":1,"_id":0}},{$out:"products1"}]);
+> db.products1.aggregate({$project:{"_id":0}}).pretty();
+{
+	"SUPPLIER" : {
+		"supplies" : [
+			{
+				"PRODUCT" : {
+					"product name" : "Raclette Courdavault"
+				}
+			},
+			{
+				"PRODUCT" : {
+					"product name" : "Camembert Pierrot"
+				}
+			}
+		]
+	}
+}
+> 
+> /* (2) Save all information about the names of products supplied by a supplier Gai paturage into a collection products2 that consists of the documents like {"product name": a-name-of-product}. Display in a pretty format without document identifiers all documents in a collection products2. */;
+> 
+> 
+> db.orders.aggregate([{$match:{"SUPPLIER.company name":"Gai paturage"}},{$unwind:"$SUPPLIER.supplies"},{$project:{"product name":"$SUPPLIER.supplies.PRODUCT.product name","_id":0}},{$out:"products2"}]);
+> 
+> db.products2.aggregate({$project:{"_id":0}}).pretty();
+{ "product name" : "Raclette Courdavault" }
+{ "product name" : "Camembert Pierrot" }
+> 
+> /* (3) Find the total number of products in a collection orders. Display a result in a format {"total number of products":integer-value}. */;
+> 
+> db.orders.aggregate([{$unwind:"$SUPPLIER.supplies"},{$group:{"_id":"$SUPPLIER.supplies.PRODUCT.product name"}},{$count:"total number of products"}]);
+{ "total number of products" : 77 }
+> 
+> /* (4) List in the ascending order the ids of the first 3 employees who handled at least one order. Display the results in a format {"employee id":a-value-of employee-id}. List only distinct values. */;
+>
+> /*The question did not mention that I should sort base on what! therefore, I sort it base on employee id */;
+> db.orders.aggregate([{$match:{"CUSTOMER.submits.ORDER.employee id":{"$exists":true}}},{$project:{"employee id":"$CUSTOMER.submits.ORDER.employee id", "_id":0}},{$out:"listEmployees"}]);
+> db.listEmployees.aggregate([{$unwind:"$employee id"},{$project:{"_id":0}},{$limit:3},{$sort:{"employee id":1}}]).pretty();
+{ "employee id" : 2 }
+{ "employee id" : 3 }
+{ "employee id" : 8 }
+> 
+> 
+> 
+> /* (5) Find the company names of suppliers together with the total number of supplied products by each company. Display the results in a format {"total products":integer-value,"company name":a-company-name}. */
+... 
+... db.orders.aggregate([{$unwind:"$SUPPLIER.supplies"},{$group:{"_id":"$SUPPLIER.company name","total products":{$sum:1}}},{$out:"totalProduct"}]);
+> 
+> db.totalProduct.aggregate([{$project:{"total products":"$total products","company name":"$_id","_id":0}}]);
+{ "total products" : 2, "company name" : "PB Knackebrod AB" }
+{ "total products" : 1, "company name" : "Refrescos Americanas LTDA" }
+{ "total products" : 3, "company name" : "Grandma Kelly's Homestead" }
+{ "total products" : 2, "company name" : "Lyngbysild" }
+{ "total products" : 2, "company name" : "Ma Maison" }
+{ "total products" : 2, "company name" : "Zaanse Snoepfabriek" }
+{ "total products" : 3, "company name" : "Svensk Sjofoda AB" }
+{ "total products" : 3, "company name" : "Karkki Oy" }
+{ "total products" : 4, "company name" : "Specialty Biscuits, Ltd." }
+{ "total products" : 3, "company name" : "Norske Meierier" }
+{ "total products" : 1, "company name" : "Aux joyeux ecclesiastiques" }
+{ "total products" : 2, "company name" : "Forets d'erables" }
+{ "total products" : 3, "company name" : "Mayumi's" }
+{ "total products" : 3, "company name" : "Bigfoot Breweries" }
+{ "total products" : 5, "company name" : "Plutzer Lebensmittelgrossmarkte AG" }
+{ "total products" : 2, "company name" : "New England Seafood Cannery" }
+{ "total products" : 2, "company name" : "Pasta Buttini s.r.l." }
+{ "total products" : 4, "company name" : "New Orleans Cajun Delights" }
+{ "total products" : 3, "company name" : "Tokyo Traders" }
+{ "total products" : 3, "company name" : "Leka Trading" }
+Type "it" for more
+> it
+{ "total products" : 1, "company name" : "Escargots Nouveaux" }
+{ "total products" : 2, "company name" : "Gai paturage" }
+{ "total products" : 3, "company name" : "Heli Susswaren GmbH And Co. KG" }
+{ "total products" : 1, "company name" : "Nord-Ost-Fisch Handelsgesellschaft mbH" }
+{ "total products" : 2, "company name" : "Cooperativa de Quesos 'Las Cabras'" }
+{ "total products" : 3, "company name" : "G'day, Mate" }
+{ "total products" : 3, "company name" : "Formaggi Fortini s.r.l." }
+{ "total products" : 3, "company name" : "Exotic Liquids" }
+{ "total products" : 6, "company name" : "Pavlova, Ltd." }
+> 
+
+
